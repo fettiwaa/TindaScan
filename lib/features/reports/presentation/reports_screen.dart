@@ -286,12 +286,17 @@ class _ExportButton extends ConsumerWidget {
     final filter = ref.read(reportFilterProvider);
     try {
       final List<ExcelSheetSpec> specs;
+      // The summary sheet comes from daily_stats (complete); the
+      // Transactions sheet is capped, so say so instead of silently
+      // exporting sheets that do not add up.
+      var salesCapped = false;
       switch (filter.type) {
         case ReportType.sales:
           final days = await ref.read(reportStatsProvider.future);
           final sales = await ref
               .read(salesRepositoryProvider)
               .salesBetween(filter.from, filter.toExclusive);
+          salesCapped = sales.length >= AppConstants.maxReportSales;
           specs = [
             sheets.sales(StatsAggregation.group(days, filter.grouping)),
             sheets.transactions(sales),
@@ -317,7 +322,13 @@ class _ExportButton extends ConsumerWidget {
                 'TindaScan_${filter.type.name}_${keys.first}-${keys.last}.xlsx',
           );
       if (!context.mounted) return;
-      if (ok) {
+      if (ok && salesCapped) {
+        showAppSnackBar(
+          context,
+          l10n.reportsSalesCapped(AppConstants.maxReportSales),
+          type: SnackType.warning,
+        );
+      } else if (ok) {
         showAppSnackBar(context, l10n.reportsExported, type: SnackType.success);
       } else {
         final error = ref.read(reportExporterProvider).error;

@@ -1061,4 +1061,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get designGalleryTitle => 'Design gallery';
+
+  @override
+  String get signOutUnsyncedTitle => 'Some sales haven\'t synced yet';
+
+  @override
+  String get signOutUnsyncedMessage =>
+      'This phone has sales that are not on the server yet. They only sync while you are signed in here. Connect to the internet and wait a moment before signing out, or they will wait on this phone until you sign in again.';
+
+  @override
+  String get signOutAnyway => 'Sign out anyway';
+
+  @override
+  String lostSalesBanner(String receipts) {
+    return 'These offline sales were not saved: $receipts. Re-enter them and tell the owner.';
+  }
+
+  @override
+  String reportsSalesCapped(int count) {
+    return 'The Transactions sheet has only the latest $count sales. Use a shorter range for the full list.';
+  }
 }

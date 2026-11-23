@@ -316,5 +316,10 @@
   "settingsScanSound": "Tunog kapag na-scan",
   "settingsStoreSection": "Tindahan",
   "settingsDesignGallery": "Design gallery (debug)",
-  "designGalleryTitle": "Design gallery"
+  "designGalleryTitle": "Design gallery",
+  "signOutUnsyncedTitle": "May benta pang hindi na-sync",
+  "signOutUnsyncedMessage": "May mga benta sa phone na ito na wala pa sa server. Nasi-sync lang ang mga ito habang naka-sign in ka rito. Kumonekta muna sa internet at maghintay sandali bago mag-sign out, o maiiwan ang mga ito sa phone hanggang mag-sign in ka ulit.",
+  "signOutAnyway": "Mag-sign out pa rin",
+  "lostSalesBanner": "Hindi na-save ang mga offline na bentang ito: {receipts}. I-encode ulit at sabihan ang may-ari.",
+  "reportsSalesCapped": "Ang pinakabagong {count} benta lang ang nasa Transactions sheet. Gumamit ng mas maikling saklaw para sa buong listahan."
 }

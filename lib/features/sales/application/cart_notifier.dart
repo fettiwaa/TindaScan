@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:tindascan/core/errors/error_mapper.dart';
 import 'package:tindascan/core/errors/failure.dart';
+import 'package:tindascan/features/auth/application/session_providers.dart';
 import 'package:tindascan/features/products/domain/product_validators.dart';
 import 'package:tindascan/features/sales/domain/cart.dart';
 import 'package:tindascan/shared/models/product.dart';
@@ -101,3 +102,17 @@ class CartNotifier extends Notifier<Cart> {
 }
 
 final cartProvider = NotifierProvider<CartNotifier, Cart>(CartNotifier.new);
+
+/// Empties the cart whenever the signed-in account changes (sign-out, or
+/// another cashier signing in on the same phone), so nobody inherits, and
+/// gets credited with, someone else's unfinished sale. Watched by the app
+/// root. Uses `clear()` rather than invalidating so `CheckoutService` keeps
+/// a live reference to the notifier.
+final cartSessionGuardProvider = Provider<void>((ref) {
+  ref.listen<String?>(authUidProvider.select((uid) => uid.value), (
+    previous,
+    next,
+  ) {
+    if (previous != next) ref.read(cartProvider.notifier).clear();
+  });
+});

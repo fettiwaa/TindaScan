@@ -1066,4 +1066,24 @@ class AppLocalizationsFil extends AppLocalizations {
 
   @override
   String get designGalleryTitle => 'Design gallery';
+
+  @override
+  String get signOutUnsyncedTitle => 'May benta pang hindi na-sync';
+
+  @override
+  String get signOutUnsyncedMessage =>
+      'May mga benta sa phone na ito na wala pa sa server. Nasi-sync lang ang mga ito habang naka-sign in ka rito. Kumonekta muna sa internet at maghintay sandali bago mag-sign out, o maiiwan ang mga ito sa phone hanggang mag-sign in ka ulit.';
+
+  @override
+  String get signOutAnyway => 'Mag-sign out pa rin';
+
+  @override
+  String lostSalesBanner(String receipts) {
+    return 'Hindi na-save ang mga offline na bentang ito: $receipts. I-encode ulit at sabihan ang may-ari.';
+  }
+
+  @override
+  String reportsSalesCapped(int count) {
+    return 'Ang pinakabagong $count benta lang ang nasa Transactions sheet. Gumamit ng mas maikling saklaw para sa buong listahan.';
+  }
 }

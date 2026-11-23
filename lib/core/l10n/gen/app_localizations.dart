@@ -1999,6 +1999,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Design gallery'**
   String get designGalleryTitle;
+
+  /// No description provided for @signOutUnsyncedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some sales haven\'t synced yet'**
+  String get signOutUnsyncedTitle;
+
+  /// No description provided for @signOutUnsyncedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone has sales that are not on the server yet. They only sync while you are signed in here. Connect to the internet and wait a moment before signing out, or they will wait on this phone until you sign in again.'**
+  String get signOutUnsyncedMessage;
+
+  /// No description provided for @signOutAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out anyway'**
+  String get signOutAnyway;
+
+  /// No description provided for @lostSalesBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'These offline sales were not saved: {receipts}. Re-enter them and tell the owner.'**
+  String lostSalesBanner(String receipts);
+
+  /// No description provided for @reportsSalesCapped.
+  ///
+  /// In en, this message translates to:
+  /// **'The Transactions sheet has only the latest {count} sales. Use a shorter range for the full list.'**
+  String reportsSalesCapped(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -126,15 +126,20 @@ async function seed({ withSetup = true } = {}) {
 }
 
 /** Adds the receipt counter and daily stats writes of an online checkout. */
-function withCounterAndStats(firestore, batch, saleId) {
-  batch.set(doc(firestore, 'counters/receipts_20261120'), { seq: 1, lastSaleId: saleId });
+function withCounterAndStats(
+  firestore,
+  batch,
+  saleId,
+  { dayKey = '20261120', sales = 3200, cost = 2500, items = 2 } = {},
+) {
+  batch.set(doc(firestore, `counters/receipts_${dayKey}`), { seq: 1, lastSaleId: saleId });
   batch.set(
-    doc(firestore, 'daily_stats/20261120'),
+    doc(firestore, `daily_stats/${dayKey}`),
     {
-      salesCentavos: increment(3200),
-      costCentavos: increment(2500),
+      salesCentavos: increment(sales),
+      costCentavos: increment(cost),
       transactionCount: increment(1),
-      itemsSold: increment(2),
+      itemsSold: increment(items),
       products: {
         [PRODUCT]: { name: 'Lucky Me Pancit Canton', qty: increment(2), salesCentavos: increment(3200) },
       },
@@ -147,11 +152,15 @@ function withCounterAndStats(firestore, batch, saleId) {
 }
 
 /** Builds the batch a checkout performs for `uid` selling 2 units. */
-function saleBatch(firestore, uid, { saleId = 'sale-new', cashierId = uid } = {}) {
+function saleBatch(
+  firestore,
+  uid,
+  { saleId = 'sale-new', cashierId = uid, dayKey = '20261119', newStock = 18, movementQty = -2 } = {},
+) {
   const batch = writeBatch(firestore);
-  batch.set(doc(firestore, `sales/${saleId}`), saleDoc(cashierId));
+  batch.set(doc(firestore, `sales/${saleId}`), saleDoc(cashierId, { dayKey }));
   batch.update(doc(firestore, `products/${PRODUCT}`), {
-    stockQty: 18,
+    stockQty: newStock,
     lowStock: false,
     updatedAt: serverTimestamp(),
     lastSaleId: saleId,
@@ -160,7 +169,7 @@ function saleBatch(firestore, uid, { saleId = 'sale-new', cashierId = uid } = {}
     productId: PRODUCT,
     productName: 'Lucky Me Pancit Canton',
     type: 'sale',
-    qtyChange: -2,
+    qtyChange: movementQty,
     note: '',
     userId: uid,
     userName: 'Staff',
@@ -410,8 +419,73 @@ describe('with a configured store', () => {
     it('staff checkout with receipt counter and daily stats succeeds', async () => {
       const staff = db(STAFF);
       await assertSucceeds(
-        withCounterAndStats(staff, saleBatch(staff, STAFF, { saleId: 'sale-x' }), 'sale-x').commit(),
+        withCounterAndStats(
+          staff,
+          saleBatch(staff, STAFF, { saleId: 'sale-x', dayKey: '20261120' }),
+          'sale-x',
+        ).commit(),
       );
+    });
+
+    it('daily stats on an existing day add exactly the new sale', async () => {
+      // Seeded day 20261119 already holds 1000 / 800 / 1 sale / 1 item.
+      const staff = db(STAFF);
+      const batch = saleBatch(staff, STAFF, { saleId: 'sale-y' });
+      batch.update(doc(staff, 'daily_stats/20261119'), {
+        salesCentavos: increment(3200),
+        costCentavos: increment(2500),
+        transactionCount: increment(1),
+        itemsSold: increment(2),
+        lastSaleId: 'sale-y',
+        updatedAt: serverTimestamp(),
+      });
+      await assertSucceeds(batch.commit());
+    });
+
+    it('rejects daily stats that do not match the sale', async () => {
+      const staff = db(STAFF);
+      await assertFails(
+        withCounterAndStats(
+          staff,
+          saleBatch(staff, STAFF, { saleId: 'sale-inflated', dayKey: '20261120' }),
+          'sale-inflated',
+          { sales: 999999 },
+        ).commit(),
+      );
+      await assertFails(
+        withCounterAndStats(
+          staff,
+          saleBatch(staff, STAFF, { saleId: 'sale-wrong-day', dayKey: '20261121' }),
+          'sale-wrong-day',
+          { dayKey: '20261120' },
+        ).commit(),
+      );
+    });
+
+    it('rejects a stock decrease larger than the sale', async () => {
+      // The sale has 2 items, but stock drops by 15.
+      await assertFails(
+        saleBatch(db(STAFF), STAFF, { saleId: 'sale-drain', newStock: 5 }).commit(),
+      );
+    });
+
+    it('rejects a sale movement larger than the sale', async () => {
+      await assertFails(
+        saleBatch(db(STAFF), STAFF, { saleId: 'sale-bigmove', movementQty: -50 }).commit(),
+      );
+    });
+
+    it('an offline-style increment decrease within the sale is allowed', async () => {
+      const staff = db(STAFF);
+      const batch = writeBatch(staff);
+      batch.set(doc(staff, 'sales/sale-off'), saleDoc(STAFF, { offline: true }));
+      batch.update(doc(staff, `products/${PRODUCT}`), {
+        stockQty: increment(-2),
+        lowStock: false,
+        updatedAt: serverTimestamp(),
+        lastSaleId: 'sale-off',
+      });
+      await assertSucceeds(batch.commit());
     });
 
     it('daily stats and counters cannot be written without a sale', async () => {

@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed (code review, 23 Nov 2026)
+- The cart is cleared when the signed-in account changes, so a cashier no longer inherits (and gets credited with) the previous cashier's unfinished sale.
+- Signing out with offline sales still waiting to sync now warns first (Firestore keeps pending writes per account, so they would wait until that account signs in again).
+- An offline sale the server rejects on sync is no longer lost silently: it is listed on the Sell screen to be re-entered. A rejection because the same sale already committed online (lost response) is recognised and not reported.
+- Exporting a sales report warns when the Transactions sheet hits the 1000-sale cap instead of silently disagreeing with the summary sheet.
+- Report transactions are grouped by the day the sale was made (`dayKey`), not by when an offline sale synced, so they match `daily_stats`.
+
+### Security
+- Rules: `daily_stats` must equal the previous totals plus exactly the new sale, on the sale's own day; a sale's stock decrease and stock movement can be no larger than the sale's item count; `itemCount` is bounded by the number of lines. Per-line prices still cannot be checked in rules (no loops); that would need a Cloud Function.
+
 ### Changed (F-01 checkout refactor)
 - Checkout logic moved into a UI-independent `CheckoutService` (payment validation, online transaction or offline fallback, cart refresh on stock conflicts, double-submit guard, alert hand-off).
 - `CartController` renamed to `CartNotifier` with `addByBarcode(barcode)`; the scanner sheet uses it directly.

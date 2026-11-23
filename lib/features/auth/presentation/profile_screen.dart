@@ -47,14 +47,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _signOut() async {
     final l10n = context.l10n;
+    final controller = ref.read(profileControllerProvider.notifier);
+    final unsynced = await controller.hasUnsyncedSales();
+    if (!mounted) return;
     final confirmed = await showConfirmDialog(
       context,
-      title: l10n.signOutConfirm,
-      confirmLabel: l10n.signOut,
+      title: unsynced ? l10n.signOutUnsyncedTitle : l10n.signOutConfirm,
+      message: unsynced ? l10n.signOutUnsyncedMessage : null,
+      confirmLabel: unsynced ? l10n.signOutAnyway : l10n.signOut,
+      destructive: unsynced,
     );
-    if (confirmed) {
-      await ref.read(profileControllerProvider.notifier).signOut();
-    }
+    if (confirmed) await controller.signOut();
   }
 
   @override

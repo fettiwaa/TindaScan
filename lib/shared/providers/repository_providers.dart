@@ -4,6 +4,7 @@ import 'package:tindascan/features/auth/data/firebase_auth_repository.dart';
 import 'package:tindascan/features/auth/data/firestore_user_repository.dart';
 import 'package:tindascan/features/dashboard/data/firestore_stats_repository.dart';
 import 'package:tindascan/features/products/data/firestore_product_repository.dart';
+import 'package:tindascan/features/sales/application/lost_sales_log.dart';
 import 'package:tindascan/features/sales/data/firestore_sales_repository.dart';
 import 'package:tindascan/features/settings/data/firestore_settings_repository.dart';
 import 'package:tindascan/features/stock/data/firestore_stock_repository.dart';
@@ -38,7 +39,10 @@ final productRepositoryProvider = Provider<ProductRepository>(
 );
 
 final salesRepositoryProvider = Provider<SalesRepository>(
-  (ref) => FirestoreSalesRepository(ref.watch(firestoreProvider)),
+  (ref) => FirestoreSalesRepository(
+    ref.watch(firestoreProvider),
+    onSyncLost: (sale) => ref.read(lostSalesProvider.notifier).record(sale),
+  ),
 );
 
 final stockRepositoryProvider = Provider<StockRepository>(

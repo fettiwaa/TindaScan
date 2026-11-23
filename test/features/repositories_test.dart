@@ -311,6 +311,25 @@ void main() {
       expect(list.single.id, 'sale-1');
       expect(await sales.getSale('sale-1'), isNotNull);
     });
+
+    test('salesBetween groups by sale day, not by sync time', () async {
+      final p = await create(product());
+      // Made on 19 Nov (Manila); the fake stamps createdAt with "now".
+      await createSaleOffline(request(const Cart().add(p), saleId: 'late1'));
+      await Future<void>.delayed(Duration.zero);
+
+      final nov19 = ManilaTime.parseDayKey('20261119');
+      final onTheDay = await sales.salesBetween(
+        nov19,
+        nov19.add(const Duration(days: 1)),
+      );
+      final dayAfter = await sales.salesBetween(
+        nov19.add(const Duration(days: 1)),
+        nov19.add(const Duration(days: 2)),
+      );
+      expect(onTheDay.map((s) => s.id), ['late1']);
+      expect(dayAfter, isEmpty);
+    });
   });
 
   group('FirestoreStockRepository', () {

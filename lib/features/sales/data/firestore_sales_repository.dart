@@ -22,9 +22,14 @@ typedef _Json = Map<String, Object?>;
 
 /// [SalesRepository] backed by Cloud Firestore.
 class FirestoreSalesRepository implements SalesRepository {
-  FirestoreSalesRepository(this._db);
+  FirestoreSalesRepository(this._db, {void Function(Sale sale)? onSyncLost})
+    : _onSyncLost = onSyncLost;
 
   final FirebaseFirestore _db;
+
+  /// Called when the server rejects an offline sale and it is not on the
+  /// server either, i.e. the sale is really lost and must be re-entered.
+  final void Function(Sale sale)? _onSyncLost;
 
   CollectionReference<_Json> get _sales => _db.collection(FirestorePaths.sales);
 
@@ -167,8 +172,12 @@ class FirestoreSalesRepository implements SalesRepository {
   /// stock is not re-checked on the server, two offline devices can oversell
   /// and stock can go negative after sync; the owner sees these products
   /// under Alerts → Negative stock. If the server rejects the batch when it
-  /// syncs (e.g. the product was archived meanwhile), the sale is dropped and
-  /// the error is logged.
+  /// syncs, [_onSyncRejected] checks whether the sale is on the server
+  /// anyway (an earlier transaction committed but its response was lost) and
+  /// otherwise reports it through `onSyncLost` so the cashier can re-enter
+  /// it. Limitation: this only works while the app process that made the
+  /// sale is still running; a rejection after an app restart is only logged
+  /// by Firestore.
   Future<Sale> _batch(CheckoutRequest request) => guardFailure(() async {
     final dayKey = ManilaTime.dayKey(request.now);
     final sale = request.buildSale(
@@ -209,10 +218,44 @@ class FirestoreSalesRepository implements SalesRepository {
     unawaited(
       batch.commit().catchError((Object error, StackTrace stack) {
         AppLogger.error('Offline sale sync failed', error, stack);
+        return _onSyncRejected(sale);
       }),
     );
     return sale;
   });
+
+  Future<void> _onSyncRejected(Sale sale) async {
+    try {
+      final onServer = await _sales
+          .doc(sale.id)
+          .get(const GetOptions(source: Source.server));
+      // Same id already committed by the online attempt: nothing was lost
+      // (the receipt shown was the offline one; the stored sale has the
+      // sequential number).
+      if (onServer.exists) return;
+    } on Object catch (error, stack) {
+      // Cannot tell: report it so the cashier double-checks.
+      AppLogger.error('Offline sale check', error, stack);
+    }
+    _onSyncLost?.call(sale);
+  }
+
+  /// `waitForPendingWrites` completes once every write made so far is
+  /// confirmed; if it does not within [wait], some are still pending.
+  @override
+  Future<bool> hasUnsyncedSales({
+    Duration wait = const Duration(seconds: 3),
+  }) async {
+    try {
+      await _db.waitForPendingWrites().timeout(wait);
+      return false;
+    } on TimeoutException {
+      return true;
+    } on Object catch (error, stack) {
+      AppLogger.error('Pending writes check', error, stack);
+      return false;
+    }
+  }
 
   @override
   Future<Sale?> getSale(String id) => guardFailure(() async {
@@ -221,7 +264,10 @@ class FirestoreSalesRepository implements SalesRepository {
     return data == null ? null : Sale.fromMap(snap.id, data);
   });
 
-  /// Read cost: up to [limit] reads (single-field index on createdAt).
+  /// Filters on `dayKey` (the Manila day the sale was made), not
+  /// `createdAt` (server time, which for an offline sale is when it
+  /// synced), so the Transactions sheet agrees with `daily_stats`.
+  /// Read cost: up to [limit] reads (single-field index on dayKey).
   @override
   Future<List<Sale>> salesBetween(
     DateTime from,
@@ -230,14 +276,23 @@ class FirestoreSalesRepository implements SalesRepository {
   }) => guardFailure(() async {
     final snap = await _sales
         .where(
-          SaleFields.createdAt,
-          isGreaterThanOrEqualTo: Timestamp.fromDate(from),
+          SaleFields.dayKey,
+          isGreaterThanOrEqualTo: ManilaTime.dayKey(from),
         )
-        .where(SaleFields.createdAt, isLessThan: Timestamp.fromDate(to))
-        .orderBy(SaleFields.createdAt, descending: true)
+        .where(SaleFields.dayKey, isLessThan: ManilaTime.dayKey(to))
+        .orderBy(SaleFields.dayKey, descending: true)
         .limit(limit)
         .get();
-    return [for (final doc in snap.docs) Sale.fromMap(doc.id, doc.data())];
+    final sales = [
+      for (final doc in snap.docs) Sale.fromMap(doc.id, doc.data()),
+    ];
+    // Newest first within a day.
+    final epoch = DateTime.utc(1970);
+    return sales..sort((a, b) {
+      final byDay = b.dayKey.compareTo(a.dayKey);
+      if (byDay != 0) return byDay;
+      return (b.createdAt ?? epoch).compareTo(a.createdAt ?? epoch);
+    });
   });
 
   static _Json _saleMovement(Sale sale, Product product, int qty) => {

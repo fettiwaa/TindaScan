@@ -571,5 +571,24 @@
   "settingsScanSound": "Sound on successful scan",
   "settingsStoreSection": "Store",
   "settingsDesignGallery": "Design gallery (debug)",
-  "designGalleryTitle": "Design gallery"
+  "designGalleryTitle": "Design gallery",
+  "signOutUnsyncedTitle": "Some sales haven't synced yet",
+  "signOutUnsyncedMessage": "This phone has sales that are not on the server yet. They only sync while you are signed in here. Connect to the internet and wait a moment before signing out, or they will wait on this phone until you sign in again.",
+  "signOutAnyway": "Sign out anyway",
+  "lostSalesBanner": "These offline sales were not saved: {receipts}. Re-enter them and tell the owner.",
+  "@lostSalesBanner": {
+    "placeholders": {
+      "receipts": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsSalesCapped": "The Transactions sheet has only the latest {count} sales. Use a shorter range for the full list.",
+  "@reportsSalesCapped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

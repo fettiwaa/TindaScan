@@ -18,10 +18,12 @@ import 'package:tindascan/core/utils/money.dart';
 import 'package:tindascan/core/widgets/animated_counter.dart';
 import 'package:tindascan/core/widgets/feedback_ui.dart';
 import 'package:tindascan/core/widgets/form_controls.dart';
+import 'package:tindascan/core/widgets/message_banner.dart';
 import 'package:tindascan/core/widgets/motion.dart';
 import 'package:tindascan/core/widgets/state_views.dart';
 import 'package:tindascan/features/products/presentation/product_tile.dart';
 import 'package:tindascan/features/sales/application/cart_notifier.dart';
+import 'package:tindascan/features/sales/application/lost_sales_log.dart';
 import 'package:tindascan/features/sales/application/product_suggestions.dart';
 import 'package:tindascan/features/sales/domain/cart.dart';
 import 'package:tindascan/features/sales/presentation/payment_sheet.dart';
@@ -146,6 +148,7 @@ class _SellScreenState extends ConsumerState<SellScreen> {
         ),
         body: Column(
           children: [
+            const _LostSalesBanner(),
             Padding(
               padding: const EdgeInsets.fromLTRB(Gaps.md, 0, Gaps.md, Gaps.sm),
               child: TextField(
@@ -190,6 +193,36 @@ class _SellScreenState extends ConsumerState<SellScreen> {
               ? const SizedBox(width: double.infinity)
               : _SummaryCard(cart: cart, onCharge: _charge),
         ),
+      ),
+    );
+  }
+}
+
+/// Offline sales the server rejected on sync (see `LostSalesLog`). Stays
+/// until the cashier confirms they were re-entered.
+class _LostSalesBanner extends ConsumerWidget {
+  const _LostSalesBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lost = ref.watch(lostSalesProvider).value ?? const <LostSale>[];
+    if (lost.isEmpty) return const SizedBox.shrink();
+    final l10n = context.l10n;
+    final receipts = lost
+        .map((s) => '${s.receiptNo} (${Money.format(s.totalCentavos)})')
+        .join(', ');
+    return Padding(
+      key: const Key('lost-sales-banner'),
+      padding: const EdgeInsets.fromLTRB(Gaps.md, 0, Gaps.md, Gaps.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          MessageBanner(text: l10n.lostSalesBanner(receipts)),
+          TextButton(
+            onPressed: () => ref.read(lostSalesProvider.notifier).dismissAll(),
+            child: Text(l10n.done),
+          ),
+        ],
       ),
     );
   }

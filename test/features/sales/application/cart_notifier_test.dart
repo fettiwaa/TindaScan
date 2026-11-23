@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -8,6 +10,7 @@ import 'package:tindascan/shared/providers/repository_providers.dart';
 import 'package:tindascan/shared/repositories/product_repository.dart';
 
 import '../../../helpers/fixtures.dart';
+import '../../../helpers/mocks.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}
 
@@ -91,6 +94,36 @@ void main() {
         container().read(cartProvider.notifier).addByBarcode('4800016644283'),
         throwsA(isA<NetworkUnavailable>()),
       );
+    });
+  });
+
+  group('cartSessionGuardProvider', () {
+    test('clears the cart when the signed-in account changes', () async {
+      final uids = StreamController<String?>();
+      addTearDown(uids.close);
+      final auth = MockAuthRepository();
+      when(auth.uidChanges).thenAnswer((_) => uids.stream);
+      final c = ProviderContainer(
+        overrides: [
+          productRepositoryProvider.overrideWithValue(products),
+          authRepositoryProvider.overrideWithValue(auth),
+        ],
+      );
+      addTearDown(c.dispose);
+      c.listen(cartSessionGuardProvider, (_, _) {});
+
+      uids.add('cashier-a');
+      await pumpEventQueue();
+      c.read(cartProvider.notifier).add(product(stock: 5));
+      expect(c.read(cartProvider).isEmpty, isFalse);
+
+      uids.add('cashier-a'); // Same account: the cart is kept.
+      await pumpEventQueue();
+      expect(c.read(cartProvider).isEmpty, isFalse);
+
+      uids.add('cashier-b');
+      await pumpEventQueue();
+      expect(c.read(cartProvider).isEmpty, isTrue);
     });
   });
 }

@@ -41,6 +41,15 @@ abstract interface class SalesRepository {
 
   Future<Sale?> getSale(String id);
 
-  /// Sales in `[from, to)`, newest first, capped at [limit] (owner only).
+  /// Whether this device still has writes (offline sales) that the server
+  /// has not confirmed. Waits at most [wait] for them to sync. Firestore
+  /// keeps pending writes per account, so they only sync while the same
+  /// account is signed in on this phone.
+  Future<bool> hasUnsyncedSales({Duration wait});
+
+  /// Sales made on the Manila days in `[from, to)` (by `dayKey`, so an
+  /// offline sale counts on the day it was made, not the day it synced),
+  /// newest first, capped at [limit] (owner only). [from] and [to] are
+  /// Manila midnights.
   Future<List<Sale>> salesBetween(DateTime from, DateTime to, {int limit});
 }

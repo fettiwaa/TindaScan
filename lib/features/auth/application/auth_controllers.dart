@@ -113,6 +113,13 @@ class ProfileController extends AsyncNotifier<void> {
     if (ref.mounted) state = result;
   }
 
+  /// True when offline sales on this phone are still waiting to sync.
+  /// Firestore keeps them per account, so signing out would hold them back
+  /// until this account signs in again on this phone.
+  Future<bool> hasUnsyncedSales() => ref
+      .read(salesRepositoryProvider)
+      .hasUnsyncedSales(wait: const Duration(seconds: 2));
+
   Future<void> signOut() async {
     final auth = ref.read(authRepositoryProvider);
     state = const AsyncLoading();

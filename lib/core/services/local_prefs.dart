@@ -25,6 +25,7 @@ abstract interface class LocalPrefs {
 abstract final class PrefKeys {
   static const String locale = 'locale';
   static const String notifiedLowStock = 'notifiedLowStock';
+  static const String lostOfflineSales = 'lostOfflineSales';
 }
 
 /// File-backed [LocalPrefs].

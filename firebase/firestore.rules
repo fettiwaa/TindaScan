@@ -77,6 +77,18 @@ service cloud.firestore {
         && getAfter(docPath('sales', saleId)).data.cashierId == request.auth.uid;
     }
 
+    // The sale created in this request (call only after partOfNewSale).
+    // Cached per request, so it costs no extra document reads.
+    function newSale(saleId) {
+      return getAfter(docPath('sales', saleId)).data;
+    }
+
+    // Known limit: rules cannot loop over a sale's `items`, so per-line
+    // prices and quantities are not cross-checked against the catalog
+    // (that needs a Cloud Function). What is enforced: a stock decrease or
+    // sale movement is never larger than the sale's item count, and
+    // daily_stats always add up to exactly the recorded sales.
+
     // ------------------------------------------------------------------ users
     function validNewUser() {
       return incoming().keys().hasOnly(['name', 'email', 'role', 'active', 'createdAt', 'updatedAt'])
@@ -213,7 +225,9 @@ service cloud.firestore {
         && incoming().stockQty < existing().stockQty
         && incoming().lowStock is bool
         && isNow(incoming().updatedAt)
-        && partOfNewSale(incoming().lastSaleId);
+        && partOfNewSale(incoming().lastSaleId)
+        && existing().stockQty - incoming().stockQty
+          <= newSale(incoming().lastSaleId).itemCount;
     }
 
     match /products/{productId} {
@@ -248,6 +262,7 @@ service cloud.firestore {
         && isStr(d.receiptNo, 1, 40)
         && d.items is list && d.items.size() >= 1 && d.items.size() <= 100
         && d.itemCount is int && d.itemCount >= 1
+        && d.itemCount <= d.items.size() * 9999
         && isMoney(d.totalCentavos)
         && isMoney(d.costTotalCentavos)
         && isMoney(d.amountTenderedCentavos)
@@ -297,7 +312,8 @@ service cloud.firestore {
       allow read: if isOwner();
       allow create: if validMovement() && (
         (isOwner() && incoming().type != 'sale')
-        || (isActive() && incoming().type == 'sale' && partOfNewSale(incoming().saleId))
+        || (isActive() && incoming().type == 'sale' && partOfNewSale(incoming().saleId)
+          && -incoming().qtyChange <= newSale(incoming().saleId).itemCount)
       );
       allow update, delete: if false;
     }
@@ -318,18 +334,30 @@ service cloud.firestore {
         && isNow(d.updatedAt);
     }
 
+    // The new totals are exactly `base` plus the sale created in this
+    // request, so the dashboard always matches the recorded sales.
+    function statsAddSale(base) {
+      let s = newSale(incoming().lastSaleId);
+      return incoming().transactionCount == base.transactionCount + 1
+        && incoming().salesCentavos == base.salesCentavos + s.totalCentavos
+        && incoming().costCentavos == base.costCentavos + s.costTotalCentavos
+        && incoming().itemsSold == base.itemsSold + s.itemCount;
+    }
+
     match /daily_stats/{dayKey} {
       allow read: if isOwner();
       allow create: if isActive()
         && dayKey.matches('^[0-9]{8}$')
         && validStats()
-        && incoming().transactionCount == 1
-        && partOfNewSale(incoming().lastSaleId);
+        && partOfNewSale(incoming().lastSaleId)
+        && newSale(incoming().lastSaleId).dayKey == dayKey
+        && statsAddSale({'transactionCount': 0, 'salesCentavos': 0,
+                         'costCentavos': 0, 'itemsSold': 0});
       allow update: if isActive()
         && validStats()
-        && incoming().transactionCount == existing().transactionCount + 1
-        && incoming().salesCentavos >= existing().salesCentavos
-        && partOfNewSale(incoming().lastSaleId);
+        && partOfNewSale(incoming().lastSaleId)
+        && newSale(incoming().lastSaleId).dayKey == dayKey
+        && statsAddSale(existing());
       allow delete: if false;
     }
 

@@ -7,6 +7,7 @@ import 'package:tindascan/core/router/app_router.dart';
 import 'package:tindascan/core/theme/app_theme.dart';
 import 'package:tindascan/core/theme/app_tokens.dart';
 import 'package:tindascan/core/widgets/offline_banner.dart';
+import 'package:tindascan/features/sales/application/cart_notifier.dart';
 import 'package:tindascan/features/settings/application/app_preferences.dart';
 import 'package:tindascan/features/settings/application/locale_provider.dart';
 
@@ -16,6 +17,7 @@ class TindaScanApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(cartSessionGuardProvider);
     final router = ref.watch(routerProvider);
     final locale = ref.watch(localeProvider).value;
     final themeMode = ref.watch(

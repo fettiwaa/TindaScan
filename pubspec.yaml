@@ -1,0 +1,75 @@
+name: tindascan
+description: >-
+  TindaScan: A Smart Inventory and Sales Management System with Barcode
+  Scanning for Small Sari-Sari Stores.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+# Version notes:
+# The Firebase plugins use the cloud_firestore 6.x line (Firebase core 4.x),
+# which is fully supported by Flutter 3.35 and includes the 6.10.x Firestore
+# security fixes.
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State and routing
+  flutter_riverpod: ^3.3.2
+  go_router: ^17.2.3
+
+  # Firebase (BaaS data layer)
+  firebase_core: ^4.1.0
+  firebase_auth: ^6.1.0
+  cloud_firestore: ^6.4.0
+  firebase_app_check: ^0.4.1
+
+  # Device features
+  mobile_scanner: ^7.5.0
+  # 12.x pulls permission_handler_android 13.x, which builds on AGP 8; 13.x
+  # requires AGP 9 (built-in Kotlin). Bump together with an AGP 9 upgrade.
+  permission_handler: ^12.0.1
+  connectivity_plus: ^7.3.1
+  flutter_local_notifications: ^20.1.0
+  timezone: ^0.10.1
+
+  # Charts, export, sharing
+  fl_chart: ^1.3.1
+  excel: ^4.0.6
+  path_provider: ^2.1.5
+  share_plus: ^12.0.2
+
+  # Formatting
+  intl: ^0.20.2
+  flutter_animate: ^4.5.2
+  google_fonts: ^8.1.0
+  animations: ^2.2.0
+  skeletonizer: ^3.0.0
+  flutter_slidable: ^4.0.3
+  material_symbols_icons: ^4.2960.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  mocktail: ^1.0.4
+  fake_cloud_firestore: ^4.4.0
+  firebase_auth_mocks: ^0.15.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+# Dev-only workaround: fake_cloud_firestore >=4.2 depends on rx 0.5, which
+# requires meta ^1.17 while Flutter 3.35 pins meta 1.16. meta only contains
+# annotations, so the override is safe. Remove it after `flutter upgrade`.
+dependency_overrides:
+  meta: ^1.17.0
+

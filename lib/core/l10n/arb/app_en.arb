@@ -1,0 +1,575 @@
+{
+  "@@locale": "en",
+  "appTitle": "TindaScan",
+  "loading": "Loading…",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "save": "Save",
+  "signOut": "Sign out",
+  "signOutConfirm": "Sign out of TindaScan?",
+  "nothingHereYet": "Nothing here yet.",
+  "errorNetwork": "No internet connection. Please check your connection and try again.",
+  "errorPermission": "You don't have permission to do that.",
+  "errorNotFound": "We couldn't find that record.",
+  "errorConflict": "The data changed on another device. Please try again.",
+  "errorRateLimit": "Too many attempts. Please wait a moment and try again.",
+  "errorSetupDone": "This store is already set up. Please sign in instead.",
+  "errorDuplicateBarcode": "Barcode {barcode} is already used by another product.",
+  "@errorDuplicateBarcode": {
+    "placeholders": {
+      "barcode": {
+        "type": "String"
+      }
+    }
+  },
+  "errorInsufficientStock": "Not enough stock for {product}. Only {available} left.",
+  "@errorInsufficientStock": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      },
+      "available": {
+        "type": "int"
+      }
+    }
+  },
+  "errorInvalidCredentials": "Wrong email or password.",
+  "errorEmailInUse": "That email is already registered.",
+  "errorWeakPassword": "That password is too weak.",
+  "errorInvalidEmail": "Please enter a valid email address.",
+  "errorAccountDisabled": "This account has been disabled.",
+  "errorRecentLogin": "Please sign in again to continue.",
+  "errorUnknown": "Something went wrong. Please try again.",
+  "fieldRequired": "This field is required.",
+  "fieldInvalidEmail": "Enter a valid email address.",
+  "fieldPasswordTooShort": "Use at least {min} characters.",
+  "@fieldPasswordTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldPasswordMismatch": "Passwords do not match.",
+  "fieldTooLong": "Too long (maximum {max} characters).",
+  "@fieldTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "confirmPasswordLabel": "Confirm password",
+  "nameLabel": "Full name",
+  "storeNameLabel": "Store name",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "loginTitle": "Sign in",
+  "loginSubtitle": "Welcome! Sign in to your store.",
+  "loginButton": "Sign in",
+  "forgotPassword": "Forgot password?",
+  "resetEmailSent": "Password reset email sent. Please check your inbox.",
+  "enterEmailFirst": "Enter your email first.",
+  "deactivatedMessage": "Your account has been deactivated. Please contact the store owner.",
+  "setupTitle": "Set up your store",
+  "setupSubtitle": "Create the owner account. This can only be done once.",
+  "setupButton": "Create owner account",
+  "accountIssueTitle": "Account not ready",
+  "accountIssueMessage": "You are signed in, but this account has no store profile. Please ask the store owner to create your account again.",
+  "homeGreeting": "Hello, {name}!",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "roleOwner": "Owner",
+  "roleStaff": "Staff",
+  "menuStaff": "Staff accounts",
+  "menuProfile": "My profile",
+  "profileTitle": "My profile",
+  "profileRole": "Role",
+  "profileSaved": "Profile saved.",
+  "staffTitle": "Staff accounts",
+  "staffEmpty": "No staff yet. Tap \"Add staff\" to create one.",
+  "staffAdd": "Add staff",
+  "staffNewTitle": "New staff account",
+  "staffCreated": "Staff account created.",
+  "staffActive": "Active",
+  "staffInactive": "Deactivated",
+  "staffDeactivateTitle": "Deactivate {name}?",
+  "@staffDeactivateTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "staffDeactivateMessage": "They will be signed out right away and can no longer use the app.",
+  "staffDeactivate": "Deactivate",
+  "staffActivate": "Reactivate",
+  "staffPasswordHint": "Give this password to the staff member in person. They can change it later with \"Forgot password\".",
+  "firebaseNotConfiguredTitle": "Firebase is not configured",
+  "firebaseNotConfiguredMessage": "Run the app with --dart-define-from-file=env/dev.json. See the README for setup steps.",
+  "connectionIssueTitle": "Cannot reach the store server",
+  "connectionIssueMessage": "TindaScan could not check whether this store is set up yet.",
+  "connectionIssuePermissionHint": "The server refused the request. If this Firebase project is new, deploy the security rules first (see \"Deploy rules and indexes\" in the README) and check that FIREBASE_PROJECT_ID in env/dev.json matches the project.",
+  "errorProductUnavailable": "{product} is no longer available.",
+  "@errorProductUnavailable": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "errorPriceChanged": "The price of {product} changed. The cart was updated; please check the total.",
+  "@errorPriceChanged": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "errorInsufficientPayment": "The amount received is less than the total.",
+  "errorExport": "Could not create the report file.",
+  "add": "Add",
+  "edit": "Edit",
+  "archive": "Archive",
+  "restore": "Restore",
+  "close": "Close",
+  "share": "Share",
+  "loadMore": "Load more",
+  "clear": "Clear",
+  "discard": "Discard",
+  "offlineBanner": "Offline: changes will sync later",
+  "menuSell": "Sell",
+  "menuProducts": "Products",
+  "menuDashboard": "Dashboard",
+  "menuAlerts": "Alerts",
+  "menuRestock": "Restock list",
+  "menuReports": "Reports",
+  "menuSettings": "Settings",
+  "productsTitle": "Products",
+  "productsSearchHint": "Search name or barcode",
+  "productsEmpty": "No products found.",
+  "productsLowStockFilter": "Low stock",
+  "productsArchivedFilter": "Archived",
+  "productsAllCategories": "All",
+  "productAdd": "Add product",
+  "productNewTitle": "New product",
+  "productEditTitle": "Edit product",
+  "productNameLabel": "Product name",
+  "productBarcodeLabel": "Barcode",
+  "productNoBarcode": "No barcode: generate a code",
+  "productScanBarcode": "Scan barcode",
+  "productCategoryLabel": "Category",
+  "productPriceLabel": "Selling price (₱)",
+  "productCostLabel": "Cost price (₱)",
+  "productInitialStockLabel": "Starting stock",
+  "productThresholdLabel": "Low-stock alert at",
+  "productExpiryLabel": "Expiry date (optional)",
+  "productNoExpiry": "No expiry date",
+  "productPickDate": "Pick date",
+  "productSaved": "Product saved.",
+  "productPriceBelowCost": "Note: selling price is below cost.",
+  "productStockCount": "{count} in stock",
+  "@productStockCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "productPrice": "Price",
+  "productCost": "Cost",
+  "productProfit": "Profit per item",
+  "productExpires": "Expires {date}",
+  "@productExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "productExpired": "Expired",
+  "productArchiveTitle": "Archive {name}?",
+  "@productArchiveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "productArchiveMessage": "It will be hidden from selling. Past sales stay unchanged, and you can restore it later.",
+  "productArchivedBadge": "Archived",
+  "productAdjustStock": "Adjust stock",
+  "productHistory": "Stock history",
+  "productInternalCode": "Internal code (no printed barcode)",
+  "productInitialStockNote": "Initial stock",
+  "productLowStockBadge": "Low",
+  "productNotFound": "Product not found",
+  "productNotFoundMessage": "No product has the barcode {barcode}.",
+  "@productNotFoundMessage": {
+    "placeholders": {
+      "barcode": {
+        "type": "String"
+      }
+    }
+  },
+  "productAddThis": "Add this product",
+  "productStockNote": "To change stock later, use \"Adjust stock\" so every change is recorded.",
+  "fieldInvalidBarcode": "Use letters, numbers and dashes only.",
+  "fieldInvalidMoney": "Enter an amount like 12.50.",
+  "fieldInvalidQuantity": "Enter a whole number from 0 to {max}.",
+  "@fieldInvalidQuantity": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryBeverages": "Beverages",
+  "categorySnacks": "Snacks",
+  "categoryNoodles": "Noodles",
+  "categoryCannedGoods": "Canned goods",
+  "categoryCondiments": "Condiments",
+  "categoryRiceGrains": "Rice & grains",
+  "categoryDairy": "Milk & dairy",
+  "categoryBread": "Bread",
+  "categoryPersonalCare": "Personal care",
+  "categoryHousehold": "Household",
+  "categoryFrozen": "Frozen",
+  "categoryOthers": "Others",
+  "scannerTitle": "Scan barcode",
+  "scannerSemantics": "Camera barcode scanner",
+  "scannerTorchOn": "Turn flashlight on",
+  "scannerTorchOff": "Turn flashlight off",
+  "scannerPermissionNeeded": "TindaScan needs the camera to scan barcodes.",
+  "scannerAllowCamera": "Allow camera",
+  "scannerPermissionDenied": "Camera access is turned off. Turn it on in Settings, or type the barcode instead.",
+  "scannerOpenSettings": "Open settings",
+  "scannerError": "The camera could not start. Type the barcode instead.",
+  "scannerManualHint": "Type barcode",
+  "scannerManualSubmit": "Use code",
+  "scannerHint": "Point the camera at the barcode",
+  "sellTitle": "Sell",
+  "sellSearchHint": "Search product to add",
+  "sellCartEmpty": "Scan or search a product to start a sale.",
+  "sellTotal": "Total",
+  "sellCharge": "Charge {amount}",
+  "@sellCharge": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sellItems": "{count, plural, =1{1 item} other{{count} items}}",
+  "@sellItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sellShowScanner": "Show scanner",
+  "sellHideScanner": "Hide scanner",
+  "sellAdded": "Added {name}",
+  "@sellAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sellRemove": "Remove",
+  "sellIncrease": "Add one",
+  "sellDecrease": "Remove one",
+  "sellDiscardTitle": "Discard this sale?",
+  "sellDiscardMessage": "The items in the cart will be removed.",
+  "sellClearCart": "Clear cart",
+  "sellOutOfStock": "Out of stock",
+  "paymentTitle": "Cash payment",
+  "paymentTendered": "Amount received (₱)",
+  "paymentChange": "Change",
+  "paymentExact": "Exact",
+  "paymentConfirm": "Confirm sale",
+  "paymentOfflineNote": "You're offline. The sale will be saved on this phone and synced later.",
+  "receiptTitle": "Receipt",
+  "receiptNo": "Receipt #{number}",
+  "@receiptNo": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "receiptCashier": "Cashier: {name}",
+  "@receiptCashier": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "receiptCash": "Cash",
+  "receiptNewSale": "New sale",
+  "receiptThanks": "Thank you! Come again.",
+  "receiptOffline": "Saved offline: will sync when online",
+  "receiptSaleComplete": "Sale complete",
+  "stockAdjustTitle": "Adjust stock",
+  "stockTypeRestock": "Restock",
+  "stockTypeSpoilage": "Damaged",
+  "stockTypeAdjustment": "Correction",
+  "stockQuantityLabel": "Quantity",
+  "stockCorrectionLabel": "Actual count on the shelf",
+  "stockNoteLabel": "Note (optional)",
+  "stockCurrent": "Current stock: {count}",
+  "@stockCurrent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stockAfter": "After saving: {count}",
+  "@stockAfter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stockSaved": "Stock updated.",
+  "stockNoChange": "The count is the same as the current stock.",
+  "stockHistoryEmpty": "No stock changes yet.",
+  "movementRestock": "Restock",
+  "movementSale": "Sale",
+  "movementSpoilage": "Damaged / spoiled",
+  "movementAdjustment": "Correction",
+  "movementBy": "by {name}",
+  "@movementBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsTitle": "Alerts",
+  "alertsLowStock": "Low stock",
+  "alertsExpiring": "Expiring",
+  "alertsNegative": "Negative",
+  "alertsLowStockEmpty": "All products are well stocked.",
+  "alertsExpiringEmpty": "Nothing expires in the next {days} days.",
+  "@alertsExpiringEmpty": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsNegativeEmpty": "No products have negative stock.",
+  "alertsNegativeExplain": "These went below zero because sales were made offline on more than one phone. Count the shelf and use \"Adjust stock\" to correct them.",
+  "notificationChannelName": "Low-stock alerts",
+  "notificationChannelDescription": "Tells you when a product is running low.",
+  "notificationLowStockTitle": "Low stock: {name}",
+  "@notificationLowStockTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationLowStockBody": "Only {count} left. Time to restock.",
+  "@notificationLowStockBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restockTitle": "Suggested restock",
+  "restockEmpty": "Nothing to restock right now.",
+  "restockNeeded": "Buy {count}",
+  "@restockNeeded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restockExplain": "Each item is brought back up to {multiplier}× its low-stock alert level.",
+  "@restockExplain": {
+    "placeholders": {
+      "multiplier": {
+        "type": "int"
+      }
+    }
+  },
+  "restockShareTitle": "Restock list",
+  "dashboardTitle": "Dashboard",
+  "dashboardTodaySales": "Today's sales",
+  "dashboardTransactions": "Transactions",
+  "dashboardProfit": "Est. profit",
+  "dashboardSalesTrend": "Sales trend",
+  "dashboard7Days": "7 days",
+  "dashboard30Days": "30 days",
+  "dashboardTopSellers": "Top 5 best-sellers",
+  "dashboardLowestStock": "Lowest stock",
+  "dashboardNoSales": "No sales in this period yet.",
+  "dashboardSold": "{count} sold",
+  "@dashboardSold": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardLowStockCount": "{count} products are low on stock",
+  "@dashboardLowStockCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsTitle": "Reports",
+  "reportsRange": "Date range",
+  "reportsSales": "Sales",
+  "reportsBestSellers": "Best-sellers",
+  "reportsInventory": "Inventory",
+  "reportsMovements": "Stock movements",
+  "reportsGroupDaily": "Daily",
+  "reportsGroupWeekly": "Weekly",
+  "reportsGroupMonthly": "Monthly",
+  "reportsExport": "Export to Excel",
+  "reportsPeriodCol": "Period",
+  "reportsSalesCol": "Sales",
+  "reportsCostCol": "Cost",
+  "reportsProfitCol": "Profit",
+  "reportsTransactionsCol": "Transactions",
+  "reportsItemsCol": "Items sold",
+  "reportsQtyCol": "Qty",
+  "reportsProductCol": "Product",
+  "reportsTotalRow": "Total",
+  "reportsValueCol": "Stock value (cost)",
+  "reportsDateCol": "Date",
+  "reportsTypeCol": "Type",
+  "reportsChangeCol": "Change",
+  "reportsUserCol": "By",
+  "reportsNoteCol": "Note",
+  "reportsReceiptCol": "Receipt",
+  "reportsCashierCol": "Cashier",
+  "reportsBarcodeCol": "Barcode",
+  "reportsCategoryCol": "Category",
+  "reportsPriceCol": "Price",
+  "reportsStockCol": "Stock",
+  "reportsTransactionsSheet": "Transactions",
+  "reportsEmpty": "No data for this range.",
+  "reportsCapped": "Only the first {count} records are included.",
+  "@reportsCapped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsRangeTooLong": "Pick a range of {days} days or less.",
+  "@reportsRangeTooLong": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "settingsDefaultThreshold": "Default low-stock alert level",
+  "settingsSaved": "Settings saved.",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "Phone default",
+  "settingsSeedTitle": "Sample data (debug builds only)",
+  "settingsSeedButton": "Add 20 sample products",
+  "settingsSeedDone": "Added {count} sample products.",
+  "@settingsSeedDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSeedExplain": "For testing. Products whose barcode already exists are skipped.",
+  "errorIndexNotReady": "The database is still being prepared. Please try again in a few minutes. (If this continues, deploy the Firestore indexes; see the README.)",
+  "navMore": "More",
+  "moreInventory": "Inventory & reports",
+  "moreStore": "Store",
+  "stockPillLow": "{count} left",
+  "@stockPillLow": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanManualChip": "Type code",
+  "scanCartCount": "{count} in cart",
+  "@scanCartCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "done": "Done",
+  "undo": "Undo",
+  "sellScan": "Scan",
+  "sellEmptyAction": "Scan a product",
+  "cartCleared": "Cart cleared",
+  "cartRemoved": "Removed {name}",
+  "@cartRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardVsYesterday": "{delta} vs yesterday",
+  "@dashboardVsYesterday": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardNoYesterday": "No sales yesterday",
+  "alertsOutOfStock": "Out of stock",
+  "alertsExpiringSoon": "Expiring soon",
+  "alertsRestockAction": "Restock",
+  "productArchivedSnack": "{name} archived",
+  "@productArchivedSnack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "productsSelectHint": "Select a product to see its details.",
+  "reportsToday": "Today",
+  "reports7d": "7D",
+  "reports30d": "30D",
+  "reportsCustom": "Custom",
+  "reportsExported": "Report ready to share.",
+  "settingsAppearance": "Appearance",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsFeedbackSection": "Feedback",
+  "settingsHaptics": "Vibration feedback",
+  "settingsHapticsHint": "Vibrate on scan, add to cart and completed sales.",
+  "settingsScanSound": "Sound on successful scan",
+  "settingsStoreSection": "Store",
+  "settingsDesignGallery": "Design gallery (debug)",
+  "designGalleryTitle": "Design gallery"
+}

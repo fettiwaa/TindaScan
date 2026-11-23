@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flutter:
+    name: Format, analyze, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.4'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test integration_test
+
+      - name: Analyze
+        run: flutter analyze
+
+      # Golden images are rendered on Windows by the maintainer; font
+      # rasterization differs slightly on Linux runners, so they are run
+      # locally (`flutter test --tags golden`) instead of in CI.
+      - name: Test with coverage
+        run: flutter test --coverage --exclude-tags golden
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov.info
+
+  rules:
+    name: Firestore security rules
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: firebase/rules-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install test dependencies
+        run: npm install
+
+      - name: Run rules tests on the emulator
+        run: npm run test:emulator

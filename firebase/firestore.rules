@@ -1,0 +1,352 @@
+rules_version = '2';
+
+// TindaScan security rules.
+//
+// Principles:
+//  * Deny by default: anything not matched below is rejected.
+//  * Roles come from users/{uid}.role (no custom claims -> works on Spark).
+//  * Deactivated users (active == false) are treated as signed out.
+//  * Sales, stock movements and setup are append-only (immutable).
+//  * Staff may only lower stock as part of a sale they create in the same
+//    batch/transaction (proved with getAfter on the new sale document).
+//  * Limits mirror lib/core/constants/app_constants.dart.
+//
+// Cost note: every get()/exists() is a billed read, but calls to the same
+// document are cached per request, so a typical sale costs ~2 extra reads.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function docPath(collection, id) {
+      return /databases/$(database)/documents/$(collection)/$(id);
+    }
+
+    function myProfilePath() {
+      return docPath('users', request.auth.uid);
+    }
+
+    function isActive() {
+      return signedIn()
+        && exists(myProfilePath())
+        && get(myProfilePath()).data.active == true;
+    }
+
+    function isOwner() {
+      return isActive() && get(myProfilePath()).data.role == 'owner';
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isStr(value, minLen, maxLen) {
+      return value is string && value.size() >= minLen && value.size() <= maxLen;
+    }
+
+    function isMoney(value) {
+      return value is int && value >= 0 && value <= 999999999;
+    }
+
+    function isNow(value) {
+      return value == request.time;
+    }
+
+    function onlyChanged(keys) {
+      return incoming().diff(existing()).affectedKeys().hasOnly(keys);
+    }
+
+    function setupPath() {
+      return docPath('settings', 'setup');
+    }
+
+    // True when `saleId` names a sale that does not exist yet, is created by
+    // this same request, and belongs to the caller. This ties stock
+    // decrements, counters and daily stats to a real, caller-owned sale.
+    function partOfNewSale(saleId) {
+      return saleId is string
+        && !exists(docPath('sales', saleId))
+        && existsAfter(docPath('sales', saleId))
+        && getAfter(docPath('sales', saleId)).data.cashierId == request.auth.uid;
+    }
+
+    // ------------------------------------------------------------------ users
+    function validNewUser() {
+      return incoming().keys().hasOnly(['name', 'email', 'role', 'active', 'createdAt', 'updatedAt'])
+        && incoming().keys().hasAll(['name', 'email', 'role', 'active', 'createdAt', 'updatedAt'])
+        && isStr(incoming().name, 1, 80)
+        && isStr(incoming().email, 3, 120)
+        && incoming().role in ['owner', 'staff']
+        && incoming().active == true
+        && isNow(incoming().createdAt)
+        && isNow(incoming().updatedAt);
+    }
+
+    // First-run owner registration: only while settings/setup is absent, and
+    // only together with the creation of settings/setup in the same batch.
+    function isOwnerSetup(uid) {
+      return signedIn()
+        && request.auth.uid == uid
+        && incoming().role == 'owner'
+        && incoming().email == request.auth.token.email
+        && !exists(setupPath())
+        && existsAfter(setupPath());
+    }
+
+    function validUserUpdate() {
+      return isStr(incoming().name, 1, 80)
+        && incoming().active is bool
+        && isNow(incoming().updatedAt);
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isOwner());
+      allow list: if isOwner();
+      allow create: if validNewUser()
+        && (isOwnerSetup(uid) || (isOwner() && incoming().role == 'staff'));
+      // Owner manages *other* accounts (name/active only, never role);
+      // everyone may rename themselves. The owner cannot deactivate itself.
+      allow update: if validUserUpdate() && (
+        (isOwner() && request.auth.uid != uid && onlyChanged(['name', 'active', 'updatedAt']))
+        || (isActive() && request.auth.uid == uid && onlyChanged(['name', 'updatedAt']))
+      );
+      allow delete: if false;
+    }
+
+    // --------------------------------------------------------------- settings
+    match /settings/setup {
+      // Public on purpose: the app must know whether to show first-run setup
+      // before anyone signs in. Holds only a boolean and a timestamp.
+      allow get: if true;
+      allow list: if false;
+      allow create: if signedIn()
+        && incoming().keys().hasOnly(['completed', 'completedAt'])
+        && incoming().completed == true
+        && isNow(incoming().completedAt)
+        && !exists(myProfilePath())
+        && existsAfter(myProfilePath())
+        && getAfter(myProfilePath()).data.role == 'owner';
+      allow update, delete: if false;
+    }
+
+    function validStore() {
+      return incoming().keys().hasOnly(['storeName', 'defaultLowStockThreshold', 'updatedAt'])
+        && isStr(incoming().storeName, 1, 60)
+        && incoming().defaultLowStockThreshold is int
+        && incoming().defaultLowStockThreshold >= 0
+        && incoming().defaultLowStockThreshold <= 10000
+        && isNow(incoming().updatedAt);
+    }
+
+    match /settings/store {
+      allow read: if isActive();
+      allow create: if validStore()
+        && (isOwner() || (signedIn() && !exists(setupPath()) && existsAfter(setupPath())));
+      allow update: if isOwner() && validStore();
+      allow delete: if false;
+    }
+
+    // --------------------------------------------------------------- barcodes
+    // Uniqueness index: barcodes/{code} -> { productId }. Created in the same
+    // transaction as the product, so two products can never share a code.
+    match /barcodes/{code} {
+      allow read: if isActive();
+      allow create: if isOwner()
+        && code.matches('^[A-Za-z0-9-]{1,64}$')
+        && incoming().keys().hasOnly(['productId'])
+        && incoming().productId is string
+        && existsAfter(docPath('products', incoming().productId))
+        && getAfter(docPath('products', incoming().productId)).data.barcode == code;
+      allow delete: if isOwner();
+      allow update: if false;
+    }
+
+    // --------------------------------------------------------------- products
+    function validProduct() {
+      let d = incoming();
+      return d.keys().hasOnly([
+          'barcode', 'name', 'nameLower', 'keywords', 'category',
+          'unitPriceCentavos', 'costPriceCentavos', 'stockQty',
+          'lowStockThreshold', 'lowStock', 'expiryDate', 'isActive',
+          'hasBarcode', 'createdAt', 'updatedAt', 'lastSaleId'])
+        && d.keys().hasAll([
+          'barcode', 'name', 'nameLower', 'category', 'unitPriceCentavos',
+          'costPriceCentavos', 'stockQty', 'lowStockThreshold', 'lowStock',
+          'isActive', 'hasBarcode', 'createdAt', 'updatedAt'])
+        && d.barcode is string && d.barcode.matches('^[A-Za-z0-9-]{1,64}$')
+        && isStr(d.name, 1, 80)
+        && d.nameLower == d.name.lower()
+        // Word prefixes for search (<= 80 chars of name -> bounded list).
+        && (!('keywords' in d) || (d.keywords is list && d.keywords.size() <= 300))
+        && isStr(d.category, 0, 40)
+        && isMoney(d.unitPriceCentavos)
+        && isMoney(d.costPriceCentavos)
+        // Negative stock is tolerated: offline sales may oversell and are
+        // flagged to the owner after sync instead of being lost.
+        && d.stockQty is int
+        && d.lowStockThreshold is int
+        && d.lowStockThreshold >= 0 && d.lowStockThreshold <= 10000
+        && d.lowStock is bool
+        && (!('expiryDate' in d) || d.expiryDate == null || d.expiryDate is timestamp)
+        && d.isActive is bool
+        && d.hasBarcode is bool
+        && isNow(d.updatedAt);
+    }
+
+    function barcodeClaimedBy(productId) {
+      return getAfter(docPath('barcodes', incoming().barcode)).data.productId == productId;
+    }
+
+    // Sale path for any active user (staff included): only stock fields may
+    // change, stock may only go down, and only for a sale created now.
+    function isSaleStockUpdate() {
+      return isActive()
+        && onlyChanged(['stockQty', 'lowStock', 'updatedAt', 'lastSaleId'])
+        && incoming().stockQty is int
+        && incoming().stockQty < existing().stockQty
+        && incoming().lowStock is bool
+        && isNow(incoming().updatedAt)
+        && partOfNewSale(incoming().lastSaleId);
+    }
+
+    match /products/{productId} {
+      allow read: if isActive();
+      allow create: if isOwner()
+        && validProduct()
+        && isNow(incoming().createdAt)
+        && barcodeClaimedBy(productId);
+      allow update: if isSaleStockUpdate() || (
+        isOwner()
+        && validProduct()
+        && incoming().createdAt == existing().createdAt
+        && (incoming().barcode == existing().barcode || barcodeClaimedBy(productId))
+      );
+      // Soft delete only (isActive=false) so historical sales stay intact.
+      allow delete: if false;
+    }
+
+    // ------------------------------------------------------------------ sales
+    function validSale() {
+      let d = incoming();
+      return d.keys().hasOnly([
+          'receiptNo', 'items', 'itemCount', 'totalCentavos', 'costTotalCentavos',
+          'amountTenderedCentavos', 'changeCentavos', 'cashierId', 'cashierName',
+          'createdAt', 'dayKey', 'offline'])
+        && d.keys().hasAll([
+          'receiptNo', 'items', 'itemCount', 'totalCentavos', 'costTotalCentavos',
+          'amountTenderedCentavos', 'changeCentavos', 'cashierId', 'cashierName',
+          'createdAt', 'dayKey', 'offline'])
+        && d.cashierId == request.auth.uid
+        && isStr(d.cashierName, 1, 80)
+        && isStr(d.receiptNo, 1, 40)
+        && d.items is list && d.items.size() >= 1 && d.items.size() <= 100
+        && d.itemCount is int && d.itemCount >= 1
+        && isMoney(d.totalCentavos)
+        && isMoney(d.costTotalCentavos)
+        && isMoney(d.amountTenderedCentavos)
+        && d.amountTenderedCentavos >= d.totalCentavos
+        && d.changeCentavos == d.amountTenderedCentavos - d.totalCentavos
+        && d.dayKey is string && d.dayKey.matches('^[0-9]{8}$')
+        && d.offline is bool
+        && isNow(d.createdAt);
+    }
+
+    match /sales/{saleId} {
+      // Owner sees all sales; staff see only their own (queries must filter
+      // on cashierId == uid or they are rejected as a whole).
+      // `resource == null` lets the checkout transaction check whether its
+      // (random, unguessable) sale id already exists, which makes retries
+      // idempotent. It reveals nothing: a missing document has no data.
+      allow get: if isOwner()
+        || (isActive() && (resource == null || resource.data.cashierId == request.auth.uid));
+      allow list: if isOwner()
+        || (isActive() && resource.data.cashierId == request.auth.uid);
+      allow create: if isActive() && validSale();
+      // Immutable: corrections happen through new stock movements.
+      allow update, delete: if false;
+    }
+
+    // -------------------------------------------------------- stock movements
+    function validMovement() {
+      let d = incoming();
+      return d.keys().hasOnly([
+          'productId', 'productName', 'type', 'qtyChange', 'note', 'userId',
+          'userName', 'saleId', 'createdAt'])
+        && d.keys().hasAll([
+          'productId', 'productName', 'type', 'qtyChange', 'note', 'userId', 'createdAt'])
+        && d.productId is string
+        && isStr(d.productName, 1, 80)
+        && d.type in ['restock', 'sale', 'spoilage', 'adjustment']
+        && d.qtyChange is int && d.qtyChange != 0
+        && (d.type != 'restock' || d.qtyChange > 0)
+        && (d.type != 'spoilage' || d.qtyChange < 0)
+        && (d.type != 'sale' || d.qtyChange < 0)
+        && isStr(d.note, 0, 200)
+        && d.userId == request.auth.uid
+        && isNow(d.createdAt);
+    }
+
+    match /stock_movements/{movementId} {
+      allow read: if isOwner();
+      allow create: if validMovement() && (
+        (isOwner() && incoming().type != 'sale')
+        || (isActive() && incoming().type == 'sale' && partOfNewSale(incoming().saleId))
+      );
+      allow update, delete: if false;
+    }
+
+    // ------------------------------------------------------------ daily stats
+    // Per-day aggregates written with FieldValue.increment inside the sale
+    // transaction, so dashboards read <= 30 small docs instead of all sales.
+    function validStats() {
+      let d = incoming();
+      return d.keys().hasOnly([
+          'salesCentavos', 'costCentavos', 'transactionCount', 'itemsSold',
+          'products', 'lastSaleId', 'updatedAt'])
+        && d.salesCentavos is int
+        && d.costCentavos is int
+        && d.transactionCount is int
+        && d.itemsSold is int
+        && d.products is map
+        && isNow(d.updatedAt);
+    }
+
+    match /daily_stats/{dayKey} {
+      allow read: if isOwner();
+      allow create: if isActive()
+        && dayKey.matches('^[0-9]{8}$')
+        && validStats()
+        && incoming().transactionCount == 1
+        && partOfNewSale(incoming().lastSaleId);
+      allow update: if isActive()
+        && validStats()
+        && incoming().transactionCount == existing().transactionCount + 1
+        && incoming().salesCentavos >= existing().salesCentavos
+        && partOfNewSale(incoming().lastSaleId);
+      allow delete: if false;
+    }
+
+    // --------------------------------------------------------------- counters
+    // Per-day receipt sequence: counters/receipts_yyyyMMdd { seq }.
+    match /counters/{counterId} {
+      allow read: if isActive();
+      allow create: if isActive()
+        && counterId.matches('^receipts_[0-9]{8}$')
+        && incoming().keys().hasOnly(['seq', 'lastSaleId'])
+        && incoming().seq == 1
+        && partOfNewSale(incoming().lastSaleId);
+      allow update: if isActive()
+        && incoming().keys().hasOnly(['seq', 'lastSaleId'])
+        && incoming().seq == existing().seq + 1
+        && partOfNewSale(incoming().lastSaleId);
+      allow delete: if false;
+    }
+  }
+}

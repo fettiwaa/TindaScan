@@ -1,0 +1,4 @@
+tags:
+  # Pixel comparisons; regenerate with:
+  #   flutter test --update-goldens --tags golden
+  golden:

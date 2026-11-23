@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only. The local Firebase Emulator Suite speaks plain HTTP
+     (10.0.2.2 on the Android emulator, the PC's LAN IP on a real phone), which
+     Android blocks by default since API 28. Release builds keep the default:
+     HTTPS only. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

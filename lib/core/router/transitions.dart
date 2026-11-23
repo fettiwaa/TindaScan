@@ -74,16 +74,19 @@ class _Branch extends StatelessWidget {
   final Widget child;
 
   @override
+  // TickerMode must sit *inside* AnimatedOpacity: if it wrapped the
+  // AnimatedOpacity, the leaving branch's own fade-out ticker would be muted
+  // and the branch would stay visible on top of the new one.
   Widget build(BuildContext context) => IgnorePointer(
     ignoring: !active,
     child: ExcludeSemantics(
       excluding: !active,
-      child: TickerMode(
-        enabled: active,
-        child: AnimatedOpacity(
-          opacity: active ? 1 : 0,
-          duration: duration,
-          curve: AppMotion.transition,
+      child: AnimatedOpacity(
+        opacity: active ? 1 : 0,
+        duration: duration,
+        curve: AppMotion.transition,
+        child: TickerMode(
+          enabled: active,
           child: Offstage(
             offstage: !active && duration == Duration.zero,
             child: child,

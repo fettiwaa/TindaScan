@@ -66,7 +66,7 @@ of a new sale.
 
 ## Setup
 
-Requirements: Flutter 3.35+ (CI uses 3.35.4), and for rules tests Node 22 and Java 21.
+Requirements: Flutter 3.41+ (CI uses 3.41.9), and for rules tests Node 22 and Java 21.
 
 ```sh
 flutter pub get

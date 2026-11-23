@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed (toolchain)
+- Flutter 3.41.9 in CI (was 3.35.4); contributors need Flutter 3.41+. The `meta` dependency override is removed (no longer needed). Only SDK-pinned transitive packages changed in `pubspec.lock`.
+- Goldens regenerated: Flutter 3.41's colour utilities derive slightly different on-container text tones from the seed colour; layouts are unchanged.
+
 ### Fixed (code review, 23 Nov 2026)
 - The cart is cleared when the signed-in account changes, so a cashier no longer inherits (and gets credited with) the previous cashier's unfinished sale.
 - Signing out with offline sales still waiting to sync now warns first (Firestore keeps pending writes per account, so they would wait until that account signs in again).

@@ -11,8 +11,8 @@ environment:
 
 # Version notes:
 # The Firebase plugins use the cloud_firestore 6.x line (Firebase core 4.x),
-# which is fully supported by Flutter 3.35 and includes the 6.10.x Firestore
-# security fixes.
+# which is fully supported by Flutter 3.41 (the version CI uses) and includes
+# the 6.10.x Firestore security fixes.
 dependencies:
   flutter:
     sdk: flutter
@@ -66,10 +66,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
-
-# Dev-only workaround: fake_cloud_firestore >=4.2 depends on rx 0.5, which
-# requires meta ^1.17 while Flutter 3.35 pins meta 1.16. meta only contains
-# annotations, so the override is safe. Remove it after `flutter upgrade`.
-dependency_overrides:
-  meta: ^1.17.0
 

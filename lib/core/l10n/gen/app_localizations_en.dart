@@ -149,6 +149,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account has been deactivated. Please contact the store owner.';
 
   @override
+  String get sessionRejectedMessage =>
+      'Your saved sign-in is no longer valid for this store. Please sign in again.';
+
+  @override
   String get setupTitle => 'Set up your store';
 
   @override

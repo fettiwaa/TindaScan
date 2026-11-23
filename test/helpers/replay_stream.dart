@@ -23,5 +23,8 @@ class ReplayStream<T> {
     listener.onCancel = sub.cancel;
   });
 
+  /// Emits an error to current listeners (not replayed).
+  void addError(Object error) => _controller.addError(error);
+
   Future<void> close() => _controller.close();
 }

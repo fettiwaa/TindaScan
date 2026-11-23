@@ -73,6 +73,7 @@
   "resetEmailSent": "Password reset email sent. Please check your inbox.",
   "enterEmailFirst": "Enter your email first.",
   "deactivatedMessage": "Your account has been deactivated. Please contact the store owner.",
+  "sessionRejectedMessage": "Your saved sign-in is no longer valid for this store. Please sign in again.",
   "setupTitle": "Set up your store",
   "setupSubtitle": "Create the owner account. This can only be done once.",
   "setupButton": "Create owner account",

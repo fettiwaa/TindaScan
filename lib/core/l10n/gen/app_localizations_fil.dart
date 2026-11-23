@@ -150,6 +150,10 @@ class AppLocalizationsFil extends AppLocalizations {
       'Na-deactivate ang iyong account. Makipag-ugnayan sa may-ari ng tindahan.';
 
   @override
+  String get sessionRejectedMessage =>
+      'Hindi na valid ang naka-save mong sign-in para sa tindahang ito. Mag-sign in ulit.';
+
+  @override
   String get setupTitle => 'I-set up ang tindahan';
 
   @override

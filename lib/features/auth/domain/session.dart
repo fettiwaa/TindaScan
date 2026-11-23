@@ -3,7 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:tindascan/shared/models/app_user.dart';
 
 /// Why the user was signed out (shown on the login screen).
-enum SignOutReason { deactivated }
+enum SignOutReason {
+  deactivated,
+
+  /// The server refused to read the user's own profile (e.g. a login saved
+  /// from a different Firebase project, or a revoked account).
+  sessionRejected,
+}
 
 /// The authentication + authorization state the router reacts to.
 @immutable

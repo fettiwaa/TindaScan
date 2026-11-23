@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:tindascan/core/errors/failure.dart';
 import 'package:tindascan/features/auth/domain/session.dart';
 import 'package:tindascan/shared/models/app_user.dart';
 import 'package:tindascan/shared/providers/repository_providers.dart';
@@ -90,18 +91,27 @@ Stream<Session> _signedIn(
   required SettingsRepository settings,
   required SignOutReasonNotifier reasons,
 }) async* {
-  await for (final user in users.watchUser(uid)) {
-    if (user == null) {
-      yield SessionMissingProfile(
-        uid: uid,
-        setupCompleted: await _setupCompleted(settings),
-      );
-    } else if (!user.active) {
-      reasons.set(SignOutReason.deactivated);
-      yield const SessionLoading();
-      await auth.signOut();
-    } else {
-      yield SessionSignedIn(user);
+  try {
+    await for (final user in users.watchUser(uid)) {
+      if (user == null) {
+        yield SessionMissingProfile(
+          uid: uid,
+          setupCompleted: await _setupCompleted(settings),
+        );
+      } else if (!user.active) {
+        reasons.set(SignOutReason.deactivated);
+        yield const SessionLoading();
+        await auth.signOut();
+      } else {
+        yield SessionSignedIn(user);
+      }
     }
+  } on PermissionDenied {
+    // The server will not let this login read its own profile, so any
+    // session shown from the local cache is stale. Sign out rather than
+    // keep the user in an app where every request fails.
+    reasons.set(SignOutReason.sessionRejected);
+    yield const SessionLoading();
+    await auth.signOut();
   }
 }

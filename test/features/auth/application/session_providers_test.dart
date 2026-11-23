@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:tindascan/core/errors/failure.dart';
 import 'package:tindascan/features/auth/application/session_providers.dart';
 import 'package:tindascan/features/auth/domain/session.dart';
 import 'package:tindascan/shared/models/app_user.dart';
@@ -133,5 +134,26 @@ void main() {
     expect(await signedOut, isA<SessionSignedOut>());
     verify(() => auth.signOut()).called(1);
     expect(container.read(signOutReasonProvider), SignOutReason.deactivated);
+  });
+
+  test('a rejected profile read signs out instead of keeping a stale '
+      'session', () async {
+    final container = makeContainer();
+    final signedIn = sessionWhere(container, (s) => s is SessionSignedIn);
+    await Future<void>.delayed(Duration.zero);
+    uid.add(testStaff.uid);
+    await Future<void>.delayed(Duration.zero);
+    profile.add(testStaff); // e.g. served from the local cache
+    await signedIn;
+
+    final signedOut = sessionWhere(container, (s) => s is SessionSignedOut);
+    profile.addError(const PermissionDenied()); // the server says no
+
+    expect(await signedOut, isA<SessionSignedOut>());
+    verify(() => auth.signOut()).called(1);
+    expect(
+      container.read(signOutReasonProvider),
+      SignOutReason.sessionRejected,
+    );
   });
 }

@@ -86,6 +86,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SizedBox(height: Gaps.lg),
           if (reason == SignOutReason.deactivated)
             MessageBanner(text: l10n.deactivatedMessage),
+          if (reason == SignOutReason.sessionRejected)
+            MessageBanner(text: l10n.sessionRejectedMessage),
           if (state case AsyncError(:final error))
             MessageBanner(text: error.toUserMessage(l10n)),
           if (_info != null) MessageBanner(text: _info!, isError: false),

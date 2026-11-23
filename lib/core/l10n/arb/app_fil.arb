@@ -42,6 +42,7 @@
   "resetEmailSent": "Naipadala na ang email para i-reset ang password. Tingnan ang inbox.",
   "enterEmailFirst": "Ilagay muna ang iyong email.",
   "deactivatedMessage": "Na-deactivate ang iyong account. Makipag-ugnayan sa may-ari ng tindahan.",
+  "sessionRejectedMessage": "Hindi na valid ang naka-save mong sign-in para sa tindahang ito. Mag-sign in ulit.",
   "setupTitle": "I-set up ang tindahan",
   "setupSubtitle": "Gumawa ng account ng may-ari. Isang beses lang ito magagawa.",
   "setupButton": "Gumawa ng account ng may-ari",

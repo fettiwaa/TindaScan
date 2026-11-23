@@ -350,6 +350,12 @@ abstract class AppLocalizations {
   /// **'Your account has been deactivated. Please contact the store owner.'**
   String get deactivatedMessage;
 
+  /// No description provided for @sessionRejectedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your saved sign-in is no longer valid for this store. Please sign in again.'**
+  String get sessionRejectedMessage;
+
   /// No description provided for @setupTitle.
   ///
   /// In en, this message translates to:
